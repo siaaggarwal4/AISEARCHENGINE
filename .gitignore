@@ -8,7 +8,7 @@ DEV/*
 partials/*
 url_map.json
 simhashes.json
-titlembed.json
+titleembed.json
 embeddings.json
 smallDEV/*
 __pycache__/*
