@@ -1,0 +1,15 @@
+index.json
+anchor_index.json
+exact_hashes.json
+champion_lists.json
+pagerank.json
+seek_index.json
+DEV/*
+partials/*
+url_map.json
+simhashes.json
+titlembed.json
+embeddings.json
+smallDEV/*
+__pycache__/*
+Queries.pdf
