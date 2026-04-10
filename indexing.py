@@ -97,7 +97,7 @@ INDEX_PATH    = "index.json"
 URLMAP_PATH   = "url_map.json"
 SEEK_PATH     = "seek_index.json"
 CHAMPION_PATH = "champion_lists.json"
-# PAGERANK_PATH = "pagerank.json"
+
 ANCHOR_PATH   = "anchor_index.json"
 
 EXACT_HASH_PATH = "exact_hashes.json"
@@ -255,48 +255,48 @@ for file_path in all_files:
     # embedding = np.asarray(embedding, dtype="float32")
     # saved_doc.append(embedding)
 
-    # tokens = tokenize(text)
+    tokens = tokenize(text)
 
-    # for pos, word in enumerate(tokens):
-    #     stem = stemmer.stem(word)
+    for pos, word in enumerate(tokens):
+        stem = stemmer.stem(word)
 
-    #     if stem not in hashtable:
-    #         hashtable[stem] = PostingList()
+        if stem not in hashtable:
+            hashtable[stem] = PostingList()
 
-    #     hashtable[stem].doc_inll(doc_id, pos)
+        hashtable[stem].doc_inll(doc_id, pos)
 
-    # doc_raw_links = []
-    # for a_tag in soup.find_all("a", href=True):
-    #     href = a_tag["href"].strip()
-    #     if not href or href.startswith(("mailto:", "javascript:", "tel:")):
-    #         continue
-    #     try:
-    #         full_url, _ = urldefrag(urljoin(url, href))
-    #     except Exception:
-    #         continue
-    #     anchor_text   = a_tag.get_text(strip=True)
-    #     anchor_tokens = [stemmer.stem(t) for t in tokenize(anchor_text)]
-    #     if anchor_tokens:
-    #         doc_raw_links.append((full_url, anchor_tokens))
-    # raw_links[doc_id] = doc_raw_links
+    doc_raw_links = []
+    for a_tag in soup.find_all("a", href=True):
+        href = a_tag["href"].strip()
+        if not href or href.startswith(("mailto:", "javascript:", "tel:")):
+            continue
+        try:
+            full_url, _ = urldefrag(urljoin(url, href))
+        except Exception:
+            continue
+        anchor_text   = a_tag.get_text(strip=True)
+        anchor_tokens = [stemmer.stem(t) for t in tokenize(anchor_text)]
+        if anchor_tokens:
+            doc_raw_links.append((full_url, anchor_tokens))
+    raw_links[doc_id] = doc_raw_links
 
     doc_id += 1
 
-    # if doc_id % FLUSH_LIMIT == 0:
-    #     flush_count += 1
-    #     partial_paths.append(flush_partial(hashtable, flush_count))
-    #     hashtable = {}
+    if doc_id % FLUSH_LIMIT == 0:
+        flush_count += 1
+        partial_paths.append(flush_partial(hashtable, flush_count))
+        hashtable = {}
 
 
-# if hashtable:
-#     flush_count += 1
-#     partial_paths.append(flush_partial(hashtable, flush_count))
-#     hashtable = {}
+if hashtable:
+    flush_count += 1
+    partial_paths.append(flush_partial(hashtable, flush_count))
+    hashtable = {}
 
-# print(f"total flushes: {flush_count}")
+print(f"total flushes: {flush_count}")
 
-# merged_index = merge_partials(partial_paths)
-# seek_map = write_index_lines(merged_index, INDEX_PATH)
+merged_index = merge_partials(partial_paths)
+seek_map = write_index_lines(merged_index, INDEX_PATH)
 
 with open(EMEDDINGS_PATH, "w") as f:
     json.dump(saved_doc, f)
@@ -306,69 +306,69 @@ with open(EMEDDINGS_PATH, "w") as f:
 with open(TITLEEMBEDDINGSPATH, "w") as f:
     json.dump(titles_embedding, f)
 
-# with open(SEEK_PATH, "w") as f:
-#     json.dump(seek_map, f)
+with open(SEEK_PATH, "w") as f:
+    json.dump(seek_map, f)
 
-# champion_lists = build_champion_lists(merged_index, k=50)
-# with open(CHAMPION_PATH, "w") as f:
-#     json.dump(champion_lists, f)
+champion_lists = build_champion_lists(merged_index, k=50)
+with open(CHAMPION_PATH, "w") as f:
+    json.dump(champion_lists, f)
 
-# url_to_docid = {u: str(d) for d, u in url_nums.items()}
-# link_graph   = {}
-# anchor_index = {}
+url_to_docid = {u: str(d) for d, u in url_nums.items()}
+link_graph   = {}
+anchor_index = {}
 
-# for src_id, links in raw_links.items():
-#     src_str = str(src_id)
-#     targets = []
-#     for target_url, anchor_tokens in links:
-#         tgt_str = url_to_docid.get(target_url)
-#         if tgt_str is None:
-#             continue
-#         targets.append(tgt_str)
-#         for token in anchor_tokens:
-#             if token not in anchor_index:
-#                 anchor_index[token] = {}
-#             anchor_index[token][tgt_str] = anchor_index[token].get(tgt_str, 0) + 1
-#     # link_graph[src_str] = list(set(targets))
+for src_id, links in raw_links.items():
+    src_str = str(src_id)
+    targets = []
+    for target_url, anchor_tokens in links:
+        tgt_str = url_to_docid.get(target_url)
+        if tgt_str is None:
+            continue
+        targets.append(tgt_str)
+        for token in anchor_tokens:
+            if token not in anchor_index:
+                anchor_index[token] = {}
+            anchor_index[token][tgt_str] = anchor_index[token].get(tgt_str, 0) + 1
+    link_graph[src_str] = list(set(targets))
 
-# # print(f"link graph: {len(link_graph)} nodes, {sum(len(v) for v in link_graph.values())} edges")
-# print(f"anchor index: {len(anchor_index)} tokens")
+print(f"link graph: {len(link_graph)} nodes, {sum(len(v) for v in link_graph.values())} edges")
+print(f"anchor index: {len(anchor_index)} tokens")
 
 
-# with open(ANCHOR_PATH, "w") as f:
-#     json.dump(anchor_index, f)
+with open(ANCHOR_PATH, "w") as f:
+    json.dump(anchor_index, f)
 
-# with open(URLMAP_PATH, "w") as f:
-#     json.dump(url_nums, f)
+with open(URLMAP_PATH, "w") as f:
+    json.dump(url_nums, f)
 
 print("URL mapping saved.")
 print("Final index saved.")
 
-# print("computing doc hashes...")
-# exact_hashes = {}
-# simhashes    = {}
-# for did, url in url_nums.items():
-#     fp = url_files.get(url)
-#     if not fp:
-#         continue
-#     try:
-#         content = get_url_content(fp)[1]
-#         exact_hashes[str(did)] = s_hash(content)
-#         simhashes[str(did)]    = sihash(tokenize(content))
-#     except Exception:
-#         pass
+print("computing doc hashes...")
+exact_hashes = {}
+simhashes    = {}
+for did, url in url_nums.items():
+    fp = url_files.get(url)
+    if not fp:
+        continue
+    try:
+        content = get_url_content(fp)[1]
+        exact_hashes[str(did)] = s_hash(content)
+        simhashes[str(did)]    = sihash(tokenize(content))
+    except Exception:
+        pass
 
-# with open(EXACT_HASH_PATH, "w") as f:
-#     json.dump(exact_hashes, f)
-# with open(SIMHASH_PATH, "w") as f:
-#     json.dump(simhashes, f)
-# print("hash caches saved.")
+with open(EXACT_HASH_PATH, "w") as f:
+    json.dump(exact_hashes, f)
+with open(SIMHASH_PATH, "w") as f:
+    json.dump(simhashes, f)
+print("hash caches saved.")
 
-# index_size_kb = os.path.getsize(INDEX_PATH) / 1024
+index_size_kb = os.path.getsize(INDEX_PATH) / 1024
 
-# print("\n===== INDEX ANALYTICS =====")
-# print(f"Number of indexed documents: {len(url_nums)}")
-# print(f"Number of unique tokens:     {len(merged_index)}")
-# print(f"Total index size (KB):       {index_size_kb:.2f}")
-# print(f"Anchor index tokens:         {len(anchor_index)}")
-# print("===========================")
+print("\n===== INDEX ANALYTICS =====")
+print(f"Number of indexed documents: {len(url_nums)}")
+print(f"Number of unique tokens:     {len(merged_index)}")
+print(f"Total index size (KB):       {index_size_kb:.2f}")
+print(f"Anchor index tokens:         {len(anchor_index)}")
+print("===========================")
